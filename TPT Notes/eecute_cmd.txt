@@ -1,0 +1,3 @@
+tbuild –f teradata_tpt.tpt
+
+Execution Command
