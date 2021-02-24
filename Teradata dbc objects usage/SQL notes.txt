@@ -1,0 +1,78 @@
+-------Finding database name of table-------------
+select * from dbc.tablesv
+where tablename like '%tblnamestring%';
+
+select * from dbc.tablesv
+where tablename = 'tablename';
+
+-------also can select different obect using filter tablekind-------
+/*Different objects
+Table Kind	Object Type
+T			Table
+V			View
+M			Macro
+P			Stored Procedure
+G			Trigger
+I			Join Index
+N			Hash Index
+*/
+
+-------all tables inside database----------------
+select * from dbc.tablesv
+where databasename like '%dbnamestring%';
+
+select * from dbc.tablesv
+where databasename = 'dbaname';
+
+---------show stats-----------
+show stats dbname.tablename;
+
+help stats on dbname.tablename;
+
+---------table columns---------
+SELECT * FROM DBC.ColumnsV
+WHERE DatabaseName=’dbname’ AND TableName = ’tablename’;
+
+--------Table size can be determined from multiple tables: Dbc.Allspace & Dbc.Tablesize---------
+
+SELECT databasename,tablename,CAST(SUM(currentperm)/(1024*1024*1024) AS DECIMAL(18,5)) AS TableSize_in_GB 
+FROM dbc.allspace
+WHERE databasename = 'databasename'
+AND   tablename    = 'tablename'
+GROUP BY databasename,tablename;
+
+
+SELECT databasename,tablename, CAST(SUM(currentperm)/(1024*1024*1024) AS DECIMAL(18,5)) AS TableSize_in_GB
+FROM dbc.tablesize 
+WHERE databasename = 'databasename' 
+AND   tablename    = 'tablename'
+GROUP BY databasename,tablename ;
+
+---------------Database size can determined using Dbc.Diskspace-------------------
+SELECT databasename, CAST(SUM(maxperm)/(1024*1024*1024) AS DECIMAL(18,5)) AS "Allocated(GB)",
+       CAST(SUM(currentperm)/(1024*1024*1024) AS DECIMAL(18,5)) AS  "Used(GB)",
+       "Allocated(GB)"- "Used(GB)"  AS "Free(GB)"
+FROM dbc.diskspace WHERE databasename = 'databasename'
+GROUP BY 1;
+
+---------------Determined table's skewness-----------------
+SELECT SUM(cnt) as total_rows, 
+       COUNT(*) as total_amps, 
+       MAX(cnt) as Max_rows_per_amp, 
+       MIN(cnt) as min_rows_per_amp, 
+       AVG(cnt) as avg_rows_per_amp 
+FROM (SELECT HASHAMP(HASHBUCKET(HASHROW(PI))), COUNT(*) FROM 'Tablename' Group by 1 ) dt (a, cnt) ;
+
+--------------To view error message for an error code-------------
+SELECT errortext FROM dbc.errormsgs WHERE errorcode = [errorCodeNumber];
+
+--------------Number of Nodes-------------
+SELECT COUNT(DISTINCT nodeid) FROM dbc.resusagescpu;
+
+--------------Number of Amps on each Node----------------
+SELECT nodeid,COUNT(DISTINCT vproc) number_of_amps 
+FROM dbc.ResCpuUsageByAmpView 
+GROUP BY nodeid;
+
+--------------Number of AMPs in the system----------------
+ SELECT HASHAMP()+1;
